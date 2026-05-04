@@ -2,8 +2,8 @@ const express = require('express');
 const router = express.Router();
 const db = require('../database/db');
 
-router.get('/', (req, res) => {
-  const listings = db.prepare(`
+router.get('/', async (req, res) => {
+  const listings = await db.all(`
     SELECT l.id, l.title, l.category, l.listing_type, l.location, l.status, l.image_path,
            u.first_name, u.last_name
     FROM listings l
@@ -11,7 +11,7 @@ router.get('/', (req, res) => {
     WHERE l.status = 'active'
     ORDER BY l.created_at DESC
     LIMIT 6
-  `).all();
+  `);
 
   res.render('home', { title: 'Accueil', listings });
 });
