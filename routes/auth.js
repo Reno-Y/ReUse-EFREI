@@ -24,17 +24,18 @@ router.post('/register', async (req, res) => {
     return res.render('register', { title: 'Inscription', errors, old: { first_name, last_name, email } });
   }
 
-  const existing = db.prepare('SELECT id FROM users WHERE email = ?').get(email.toLowerCase());
+  const existing = await db.get('SELECT id FROM users WHERE email = $1', [email.toLowerCase()]);
   if (existing) {
     return res.render('register', { title: 'Inscription', errors: ['Cet email est déjà utilisé.'], old: { first_name, last_name, email } });
   }
 
   const password_hash = await bcrypt.hash(password, SALT_ROUNDS);
-  const result = db.prepare(
-    'INSERT INTO users (first_name, last_name, email, password_hash) VALUES (?, ?, ?, ?)'
-  ).run(first_name.trim(), last_name.trim(), email.toLowerCase(), password_hash);
+  const result = await db.run(
+    'INSERT INTO users (first_name, last_name, email, password_hash) VALUES ($1, $2, $3, $4) RETURNING id',
+    [first_name.trim(), last_name.trim(), email.toLowerCase(), password_hash]
+  );
 
-  const user = db.prepare('SELECT id, first_name, last_name, email, role FROM users WHERE id = ?').get(result.lastInsertRowid);
+  const user = await db.get('SELECT id, first_name, last_name, email, role FROM users WHERE id = $1', [result.id]);
   req.session.user = user;
   res.flash('success', `Bienvenue ${user.first_name} ! Votre compte a été créé.`);
   res.redirect('/dashboard');
@@ -52,7 +53,7 @@ router.post('/login', async (req, res) => {
     return res.render('login', { title: 'Connexion', errors: ['Email et mot de passe requis.'], old: { email } });
   }
 
-  const user = db.prepare('SELECT * FROM users WHERE email = ? AND is_active = 1').get(email.toLowerCase());
+  const user = await db.get('SELECT * FROM users WHERE email = $1 AND is_active = 1', [email.toLowerCase()]);
   if (!user) {
     return res.render('login', { title: 'Connexion', errors: ['Identifiants incorrects.'], old: { email } });
   }

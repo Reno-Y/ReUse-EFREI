@@ -48,6 +48,14 @@ app.use((err, req, res, next) => {
   res.status(500).render('error', { title: 'Erreur serveur', message: 'Une erreur interne est survenue.' });
 });
 
-app.listen(PORT, () => {
-  console.log(`ReUse EFREI — http://localhost:${PORT}`);
-});
+const db = require('./database/db');
+db.init()
+  .then(() => {
+    app.listen(PORT, () => {
+      console.log(`ReUse EFREI — http://localhost:${PORT}`);
+    });
+  })
+  .catch(err => {
+    console.error('Erreur connexion base de données :', err.message);
+    process.exit(1);
+  });
