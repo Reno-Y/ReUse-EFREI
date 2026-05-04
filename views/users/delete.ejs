@@ -1,0 +1,15 @@
+<%- include('../partials/header') %>
+<div class="container form-page">
+  <div class="card danger-card">
+    <h1 class="page-title">Supprimer le compte</h1>
+    <p>Êtes-vous sûr de vouloir supprimer le compte de <strong><%= target.first_name %> <%= target.last_name %></strong> (<%= target.email %>) ?</p>
+    <p class="text-muted">Toutes les annonces associées seront également supprimées. Cette action est irréversible.</p>
+    <div class="confirm-actions">
+      <form method="POST" action="/users/<%= target.id %>/delete">
+        <button type="submit" class="btn-danger">Oui, supprimer</button>
+      </form>
+      <a href="<%= user.role === 'admin' ? '/users' : '/dashboard' %>" class="btn-secondary">Annuler</a>
+    </div>
+  </div>
+</div>
+<%- include('../partials/footer') %>

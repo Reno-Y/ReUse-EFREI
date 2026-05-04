@@ -1,0 +1,61 @@
+<%- include('partials/header') %>
+
+<section class="hero">
+  <div class="container">
+    <h1>Réemployer plutôt que racheter</h1>
+    <p class="hero-sub">Plateforme locale d'échange utile entre étudiants EFREI. Donnez, prêtez, vendez ou trouvez ce dont vous avez besoin.</p>
+    <div class="hero-cta">
+      <a href="/listings" class="btn-primary">Voir les annonces</a>
+      <% if (user) { %>
+        <a href="/listings/create" class="btn-secondary">Publier une annonce</a>
+      <% } else { %>
+        <a href="/register" class="btn-secondary">Créer un compte</a>
+      <% } %>
+    </div>
+  </div>
+</section>
+
+<section class="container">
+  <div class="types-grid">
+    <div class="type-card"><span class="type-icon">🎁</span><h3>Donner</h3><p>Offrez ce dont vous n'avez plus besoin.</p></div>
+    <div class="type-card"><span class="type-icon">🤝</span><h3>Prêter</h3><p>Proposez un objet temporairement.</p></div>
+    <div class="type-card"><span class="type-icon">💶</span><h3>Revendre</h3><p>Vendez à petit prix entre étudiants.</p></div>
+    <div class="type-card"><span class="type-icon">🔍</span><h3>Rechercher</h3><p>Publiez ce que vous cherchez.</p></div>
+  </div>
+</section>
+
+<% if (listings.length) { %>
+<section class="container">
+  <h2 class="section-title">Annonces récentes</h2>
+  <div class="listings-grid">
+    <% listings.forEach(l => { %>
+      <article class="listing-card">
+        <% if (l.image_path) { %>
+          <img src="<%= l.image_path %>" alt="<%= l.title %>" loading="lazy" class="listing-img">
+        <% } else { %>
+          <div class="listing-img-placeholder"></div>
+        <% } %>
+        <div class="listing-body">
+          <span class="badge badge-<%= l.listing_type %>"><%= l.listing_type %></span>
+          <span class="badge badge-cat"><%= l.category %></span>
+          <h3 class="listing-title"><a href="/listings/<%= l.id %>"><%= l.title %></a></h3>
+          <p class="listing-meta"><%= l.location %> &bull; <%= l.first_name %> <%= l.last_name[0] %>.</p>
+        </div>
+      </article>
+    <% }) %>
+  </div>
+  <p style="text-align:center;margin-top:1.5rem"><a href="/listings" class="btn-secondary">Toutes les annonces</a></p>
+</section>
+<% } %>
+
+<section class="container green-section">
+  <h2>Site Green IT</h2>
+  <ul>
+    <li>Pages légères &mdash; moins de 200 Ko</li>
+    <li>Moins de 15 requêtes HTTP par page</li>
+    <li>Aucune police externe, aucune vidéo, aucune animation superflue</li>
+    <li>Images compressées en WebP</li>
+  </ul>
+</section>
+
+<%- include('partials/footer') %>

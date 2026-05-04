@@ -1,0 +1,24 @@
+{
+  "name": "reuse-efrei",
+  "version": "1.0.0",
+  "description": "Plateforme locale de réemploi entre étudiants EFREI",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "dev": "node --watch app.js"
+  },
+  "keywords": ["réemploi", "EFREI", "green-it"],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "better-sqlite3": "^12.9.0",
+    "dotenv": "^17.4.2",
+    "ejs": "^5.0.2",
+    "express": "^5.2.1",
+    "express-session": "^1.19.0",
+    "multer": "^2.1.1",
+    "sharp": "^0.34.5"
+  }
+}
