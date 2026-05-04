@@ -8,6 +8,8 @@ const flashMiddleware = require('./middleware/flash');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+app.set('trust proxy', 1);
+
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
@@ -21,7 +23,8 @@ app.use(session({
   saveUninitialized: false,
   cookie: {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
+    secure: process.env.DATABASE_URL && !process.env.DATABASE_URL.includes('localhost'),
+    sameSite: 'lax',
     maxAge: 7 * 24 * 60 * 60 * 1000,
   },
 }));

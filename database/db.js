@@ -3,9 +3,15 @@ const { Pool } = require('pg');
 const fs = require('fs');
 const path = require('path');
 
+function getSsl() {
+  const url = process.env.DATABASE_URL || '';
+  if (!url || url.includes('localhost') || url.includes('127.0.0.1')) return false;
+  return { rejectUnauthorized: false };
+}
+
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+  ssl: getSsl(),
 });
 
 function formatDates(obj) {
