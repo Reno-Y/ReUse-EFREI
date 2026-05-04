@@ -21,9 +21,12 @@ const upload = multer({
   },
 });
 
+const UPLOADS_DIR = path.join(__dirname, '..', 'public', 'uploads');
+
 async function saveImage(buffer) {
+  if (!fs.existsSync(UPLOADS_DIR)) fs.mkdirSync(UPLOADS_DIR, { recursive: true });
   const filename = `${Date.now()}-${Math.random().toString(36).slice(2)}.webp`;
-  const dest = path.join(__dirname, '..', 'public', 'uploads', filename);
+  const dest = path.join(UPLOADS_DIR, filename);
   await sharp(buffer).resize({ width: 800, withoutEnlargement: true }).webp({ quality: 75 }).toFile(dest);
   return '/uploads/' + filename;
 }
@@ -54,12 +57,12 @@ router.get('/', async (req, res) => {
   const total = parseInt(countRow.n);
 
   const listings = await db.all(
-    `SELECT l.id, l.title, l.category, l.listing_type, l.location, l.status, l.image_path, l.price,
-            u.first_name, u.last_name
-     FROM listings l JOIN users u ON l.owner_id = u.id
-     ${where} ORDER BY l.created_at DESC
-     LIMIT $${idx} OFFSET $${idx + 1}`,
-    [...params, PER_PAGE, offset]
+      `SELECT l.id, l.title, l.category, l.listing_type, l.location, l.status, l.image_path, l.price,
+              u.first_name, u.last_name
+       FROM listings l JOIN users u ON l.owner_id = u.id
+         ${where} ORDER BY l.created_at DESC
+         LIMIT $${idx} OFFSET $${idx + 1}`,
+      [...params, PER_PAGE, offset]
   );
 
   const totalPages = Math.ceil(total / PER_PAGE);
@@ -91,16 +94,24 @@ router.post('/create', requireLogin, upload.single('image'), async (req, res) =>
 
   let image_path = null;
   if (req.file) {
-    try { image_path = await saveImage(req.file.buffer); }
-    catch { errors.push("Erreur lors du traitement de l'image."); }
+    try {
+      image_path = await saveImage(req.file.buffer);
+    } catch (e) {
+      console.error('saveImage error:', e);
+      return res.render('listings/create', {
+        title: 'Nouvelle annonce',
+        errors: ["Erreur lors du traitement de l'image. Vérifiez le format du fichier."],
+        categories: CATEGORIES, types: TYPES, old: req.body,
+      });
+    }
   }
 
   await db.run(
-    `INSERT INTO listings (title, description, category, listing_type, price, location, owner_id, image_path)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
-    [title.trim(), description.trim(), category, listing_type,
-     listing_type === 'vente' ? parseFloat(price) : null,
-     location.trim(), req.session.user.id, image_path]
+      `INSERT INTO listings (title, description, category, listing_type, price, location, owner_id, image_path)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+      [title.trim(), description.trim(), category, listing_type,
+        listing_type === 'vente' ? parseFloat(price) : null,
+        location.trim(), req.session.user.id, image_path]
   );
 
   res.flash('success', 'Annonce publiée avec succès !');
@@ -109,10 +120,10 @@ router.post('/create', requireLogin, upload.single('image'), async (req, res) =>
 
 router.get('/:id', async (req, res) => {
   const listing = await db.get(
-    `SELECT l.*, u.first_name, u.last_name, u.email
-     FROM listings l JOIN users u ON l.owner_id = u.id
-     WHERE l.id = $1`,
-    [req.params.id]
+      `SELECT l.*, u.first_name, u.last_name, u.email
+       FROM listings l JOIN users u ON l.owner_id = u.id
+       WHERE l.id = $1`,
+      [req.params.id]
   );
   if (!listing) return res.status(404).render('error', { title: 'Introuvable', message: "Cette annonce n'existe pas." });
   res.render('listings/detail', { title: listing.title, listing });
@@ -165,11 +176,11 @@ router.post('/:id/edit', requireLogin, upload.single('image'), async (req, res) 
   }
 
   await db.run(
-    `UPDATE listings SET title=$1, description=$2, category=$3, listing_type=$4, price=$5,
-     location=$6, status=$7, image_path=$8, updated_at=CURRENT_TIMESTAMP WHERE id=$9`,
-    [title.trim(), description.trim(), category, listing_type,
-     listing_type === 'vente' ? parseFloat(price) : null,
-     location.trim(), status, image_path, listing.id]
+      `UPDATE listings SET title=$1, description=$2, category=$3, listing_type=$4, price=$5,
+                           location=$6, status=$7, image_path=$8, updated_at=CURRENT_TIMESTAMP WHERE id=$9`,
+      [title.trim(), description.trim(), category, listing_type,
+        listing_type === 'vente' ? parseFloat(price) : null,
+        location.trim(), status, image_path, listing.id]
   );
 
   res.flash('success', 'Annonce mise à jour.');
